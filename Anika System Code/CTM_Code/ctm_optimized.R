@@ -1,73 +1,71 @@
+#!/usr/bin/env Rscript
+
 library(dplyr)
 library(readr)
 library(tm)
 library(topicmodels)
-library(SnowballC)
+library(NLP)
+library(textstem)  # ✅ Added for lemmatization
 
-# Capture the command line arguments
+# ---- Parse Args ----
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-  stop("Two arguments must be provided: input CSV and output Rdata prefix")
+if (length(args) < 3) {
+  stop("Three arguments must be provided: input CSV, output Rdata prefix, and output directory.")
 }
 
-input_file <- args[1]
+input_file <- normalizePath(args[1])
 output_rdata_prefix <- args[2]
+output_dir <- normalizePath(args[3])
 
-# Print args for debug
-cat("Arguments provided:\n")
-print(args)
-
-# Set working directory to script location (safe default)
-setwd(dirname(normalizePath(input_file)))
-cat("Working directory set to:\n")
-print(getwd())
-
-# Load and filter data
+# ---- Load Data ----
 data <- read_csv(input_file, show_col_types = FALSE)
 
 if (!"Abstract" %in% colnames(data)) {
-  stop("Input file must have an 'Abstract' column.")
+  stop("❌ Error: Input file must contain an 'Abstract' column.")
 }
 
 data <- data %>% filter(!is.na(Abstract) & nchar(Abstract) > 0)
-cat("✅ Loaded and filtered data, remaining rows:", nrow(data), "\n")
+cat("✅ Loaded and filtered data — rows retained:", nrow(data), "\n")
 
-# Create corpus
+# ---- Preprocess ----
 corp <- VCorpus(VectorSource(data$Abstract)) %>%
   tm_map(content_transformer(tolower)) %>%
   tm_map(removePunctuation, ucp = TRUE) %>%
   tm_map(removeNumbers) %>%
   tm_map(removeWords, c(stopwords("english"), "food", "security", "insecurity")) %>%
-  tm_map(stemDocument) %>%
+  tm_map(content_transformer(lemmatize_strings)) %>%  # ✅ Replaced stemDocument with lemmatizer
   tm_map(stripWhitespace)
 
-# Tokenizer
+# ---- Tokenizer ----
 BigramTokenizer <- function(x) {
   words_list <- words(x)
   bigrams <- unlist(lapply(ngrams(words_list, 2), paste, collapse = "_"), use.names = FALSE)
   c(words_list, bigrams)
 }
 
-# Create DTM
+# ---- Document-Term Matrix ----
 dtm <- DocumentTermMatrix(corp, control = list(tokenize = BigramTokenizer))
+
+# ---- Filter Sparse Terms ----
 sparse_val <- max(0.1, 1 - 10/nrow(dtm))
 dtm <- removeSparseTerms(dtm, sparse = sparse_val)
-cat("✅ Document-term matrix created, terms:", ncol(dtm), "docs:", nrow(dtm), "\n")
+cat("📊 DTM created — terms:", ncol(dtm), " | docs:", nrow(dtm), "\n")
 
 if (ncol(dtm) == 0 || nrow(dtm) == 0) {
-  stop("DTM is empty after sparsity filtering. Try adjusting the sparsity threshold or check your data.")
+  stop("❌ DTM is empty after filtering. Adjust sparsity threshold or check data.")
 }
 
-# Output directory
-output_dir <- file.path(getwd(), "CTMmods")
-if (!dir.exists(output_dir)) dir.create(output_dir)
+# ---- Create Output Folder ----
+if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
-# Run CTM (non-parallel)
-ks <- 5
-for (k in ks) {
-  cat("📌 Running CTM with", k, "topics...\n")
-  ctm <- CTM(dtm, k = k, method = 'VEM')
-  output_path <- file.path(output_dir, paste0("ctm", k, ".Rdata"))
-  save(ctm, file = output_path)
-  cat("✅ Saved model to", output_path, "\n")
-}
+# ---- Run CTM ----
+k <- 5  # number of topics
+cat("🧠 Running CTM with", k, "topics...\n")
+ctm <- CTM(dtm, k = k, method = "VEM")
+
+# ---- Save Model ----
+output_path <- file.path(output_dir, "CTMmods", paste0(output_rdata_prefix, ".Rdata"))
+if (!dir.exists(dirname(output_path))) dir.create(dirname(output_path), recursive = TRUE)
+
+save(ctm, file = output_path)
+cat("✅ CTM model saved to", output_path, "\n")
