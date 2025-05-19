@@ -2,9 +2,11 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import SignInModal from "./ui/signin"; // ✅ make sure this path matches
 
 export default function Navbar() {
 	const [activeTab, setActiveTab] = useState<string>("home");
+	const [isModalOpen, setIsModalOpen] = useState(false);
 	const pathname = usePathname();
 
 	useEffect(() => {
@@ -32,8 +34,20 @@ export default function Navbar() {
 					<a href="/about" className="nav-item hover:text-[#d4effc] hover:rounded-md px-2 mt-1 text-lg text-white">
 						Our Product
 					</a>
+
+					{/* Sign In Button with Image */}
+					<button
+						onClick={() => setIsModalOpen(true)}
+						className="flex items-center space-x-2 nav-item hover:text-[#d4effc] hover:rounded-md px-2 mt-1 text-lg text-white font-bold"
+					>
+						<img src="/imgs/profile.jpg" alt="Profile" className="w-7 h-7 rounded-full" />
+						<span>Sign In</span>
+					</button>
 				</div>
 			</nav>
+
+			{/* 🔽 Modal rendered conditionally */}
+			<SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 		</header>
 	);
 }

@@ -4,37 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Hover from "@/components/ui/Hover";
+import SignInModal from "@/components/ui/signin";
 
 export default function About() {
-  const [loading, setLoading] = useState(false);
-
-  const handleSearch = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('http://127.0.0.1:5000/run_ctm', {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Server error');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'outputs.zip';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Error:', err);
-      alert('Something went wrong. Make sure the backend is running.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
     <div className="overflow-x-hidden">
@@ -60,20 +33,14 @@ export default function About() {
         </h2>
 
         <button
-          onClick={handleSearch}
-          disabled={loading}
-          className="bg-[#007698] text-white py-4 px-10 rounded-full text-lg font-medium hover:bg-blue-700 transition disabled:opacity-50"
+          onClick={() => setIsModalOpen(true)}
+          className="bg-[#007698] text-white py-4 px-10 rounded-full text-lg font-medium hover:bg-blue-700 transition"
         >
-          Start Your Research Now
+          Start Your Research Now &rarr;
         </button>
 
-        {/* Loading spinner */}
-        {loading && (
-          <div className="flex items-center justify-center mt-6">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-blue-500 border-opacity-70"></div>
-            <p className="ml-4 text-lg text-blue-800">Processing…</p>
-          </div>
-        )}
+        {/* Sign-in Modal */}
+        <SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       </div>
 
       {/* Possible Data Visualizations Section */}
