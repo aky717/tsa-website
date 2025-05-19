@@ -20,10 +20,12 @@ output_dir <- normalizePath(args[3])
 # ---- Load Data ----
 data <- read_csv(input_file, show_col_types = FALSE)
 
+# Make sure the required 'Abstract' column is present
 if (!"Abstract" %in% colnames(data)) {
   stop("❌ Error: Input file must contain an 'Abstract' column.")
 }
 
+# Remove rows with empty or missing abstracts
 data <- data %>% filter(!is.na(Abstract) & nchar(Abstract) > 0)
 cat("✅ Loaded and filtered data — rows retained:", nrow(data), "\n")
 
@@ -38,9 +40,9 @@ corp <- VCorpus(VectorSource(data$Abstract)) %>%
 
 # ---- Tokenizer ----
 BigramTokenizer <- function(x) {
-  words_list <- words(x)
-  bigrams <- unlist(lapply(ngrams(words_list, 2), paste, collapse = "_"), use.names = FALSE)
-  c(words_list, bigrams)
+  words_list <- words(x)  # Split text into words
+  bigrams <- unlist(lapply(ngrams(words_list, 2), paste, collapse = "_"), use.names = FALSE)  # Make bigrams like "climate_change"
+  c(words_list, bigrams)  # Combine unigrams and bigrams
 }
 
 # ---- Document-Term Matrix ----
@@ -51,6 +53,7 @@ sparse_val <- max(0.1, 1 - 10/nrow(dtm))
 dtm <- removeSparseTerms(dtm, sparse = sparse_val)
 cat("📊 DTM created — terms:", ncol(dtm), " | docs:", nrow(dtm), "\n")
 
+# If the DTM is empty after filtering, stop and warn the user
 if (ncol(dtm) == 0 || nrow(dtm) == 0) {
   stop("❌ DTM is empty after filtering. Adjust sparsity threshold or check data.")
 }

@@ -34,14 +34,17 @@ def run_ctm_analysis(base_filename, cleaned_csv):
             capture_output=True,
             text=True
         )
+        # Print standard output and error from the R script
         print("🔧 Rscript STDOUT:\n", result.stdout)
         print("🛑 Rscript STDERR:\n", result.stderr)
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"❌ Error running CTM script.\n🔧 STDOUT:\n{e.stdout}\n🛑 STDERR:\n{e.stderr}")
 
+    # Step 2: Check that the expected RData file was created
     if not os.path.exists(rdata_output):
         raise FileNotFoundError(f"❌ CTM .Rdata file not found at {rdata_output}")
 
+    # Step 3: Run the R script to assess and summarize the model (assess_model.R)
     try:
         assess = subprocess.run(
             [rscript, os.path.join("CTM_Code", "assess_model.R"), rdata_output, cleaned_csv],
@@ -49,20 +52,24 @@ def run_ctm_analysis(base_filename, cleaned_csv):
             capture_output=True,
             text=True
         )
+        # Print standard output and error from the assessment R script
         print("🔧 Assess STDOUT:\n", assess.stdout)
         print("🛑 Assess STDERR:\n", assess.stderr)
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"❌ Error running the Assess model script.\n🔧 STDOUT:\n{e.stdout}\n🛑 STDERR:\n{e.stderr}")
 
+    # Step 4: Make sure the final output CSV was generated
     if not os.path.exists(ctm_output_csv):
         raise FileNotFoundError(f"❌ CTM output CSV not found at {ctm_output_csv}")
 
+    # Step 5: Copy the output summary CSV to a new location with a clearer name
     try:
         shutil.copy(ctm_output_csv, final_output_path)
         print(f"✅ Duplicate saved to {final_output_path}")
     except Exception as e:
         raise RuntimeError(f"❌ Error copying output file: {str(e)}")
 
+    # Return paths of the final output files
     return final_output_path, rdata_output
 
 

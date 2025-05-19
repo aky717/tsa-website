@@ -4,9 +4,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 def clean_text(text):
-    """Remove extra spaces and normalize text formatting."""
-    if pd.isna(text):
+    """
+    Cleans text by:
+    - Removing NaNs (turns them into empty string)
+    - Removing extra spaces between words
+    """
+    if pd.isna(text):  # If the cell is empty or NaN
         return ''
+    # Splits text into words, strips spaces from each, removes empty strings, rejoins
     return ' '.join([word.strip() for word in text.split() if word.strip()])
 
 def assign_topics_to_metadata():
@@ -25,7 +30,7 @@ def assign_topics_to_metadata():
     df = pd.read_excel(metadata_path)
     topics_df = pd.read_excel(topics_path)
 
-    # Ensure necessary columns are present
+    # Check if necessary columns exist
     if 'Title' not in df.columns:
         raise ValueError("The metadata file must contain the 'Title' column.")
     if 'Summary topic' not in topics_df.columns or 'Keywords' not in topics_df.columns:
@@ -37,6 +42,8 @@ def assign_topics_to_metadata():
 
     # Vectorize titles and keywords
     topic_labels = topics_df['Summary topic'].tolist()
+
+    # Create a list of keyword strings like ["food, nutrition, hunger", "irrigation, drought", ...]
     topic_keywords = topics_df['Keywords'].tolist()
     combined_titles = df['Title'].tolist() + topic_keywords
 

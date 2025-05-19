@@ -12,10 +12,15 @@ def open_publish_or_perish():
     subprocess.Popen(['cmd', '/c', 'start', '', path])
     print("🚀 Opened Publish or Perish")
 
+# Function to forcefully close Publish or Perish
 def close_publish_or_perish():
-    subprocess.call(['taskkill', '/F', '/IM', 'Publish or Perish.exe'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.call(
+        ['taskkill', '/F', '/IM', 'Publish or Perish.exe'],  # Force kill the process
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL  # Hide console output
+    )
     print("❌ Closed Publish or Perish")
 
+# Main function to wait for Excel-format data copied from Publish or Perish
 def wait_for_excel_clipboard_and_process():
     open_publish_or_perish()
     print("📋 Waiting for Excel data from clipboard... Please use 'Copy results with Excel header'")
@@ -30,6 +35,7 @@ def wait_for_excel_clipboard_and_process():
 
         if current_clipboard != old_clipboard and "\t" in current_clipboard:
             try:
+                # Step 5: Try converting clipboard string to a pandas DataFrame
                 df = pd.read_csv(StringIO(current_clipboard), sep="\t")
 
                 if 'Abstract' not in df.columns:

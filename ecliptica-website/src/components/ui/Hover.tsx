@@ -4,11 +4,10 @@ export default function DataVisualizations() {
   // Different-types-of-visualizations
   const visualizations = [
     { src: "/imgs/new-piechart.jpg", alt: "Pie Charts", description: "Pie Chart: Shows a visual of how the inputted topic is distributed by percent throughout related topics.", bgColor: "#007698" },
-    { src: "/imgs/new-bargraph.jpg", alt: "Growth Bar Over Time Charts", description: "Bar Chart: Input a topic to see how the growth race in the number of publications over the years", bgColor: "#035db4" },
+    { src: "/imgs/new-bargraph.jpg", alt: "Bar Graph", description: "Bar Graph: Uses the given topic and displays the number of publications for each subtopic.", bgColor: "#035db4" },
     { src: "/imgs/new-linechart.jpg", alt: "Line Charts", description: "Line Chart: Input a topic and display a trend of the topic over the years.", bgColor: "#99ceff" },
     { src: "/imgs/new-sunburstchart.jpg", alt: "Sunburst Charts", description: "Sunburst Chart: Shows a visual of all the keywords related to each of the subtopics within the topic selected.", bgColor: "#035db4" },
-    { src: "/imgs/new-scatterplotchart.jpg", alt: "Topics Over Time Charts", description: "Scatter Plot: Shows the number of publications for a selected topic over the years", bgColor: "#99ceff" },
-    { src: "/imgs/new-histogramchart.jpg", alt: "Publication Count Charts", description: "Histogram: Uses the given topic and displays the number of publications for each subtopic.", bgColor: "#007698" },
+    { src: "/imgs/new-scatterplotchart.jpg", alt: "Keyword Network", description: "Keyword Network: Shows the correlation between keywords and topics", bgColor: "#99ceff" },
     { src: "/imgs/new-geographychart.jpg", alt: "Geographic Charts", description: "Geographic Chart: Visualizes where the topic data can be found around the world.", bgColor: "#035db4" }
   ];
 
