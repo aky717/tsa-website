@@ -1,9 +1,11 @@
+// Copy and paste this entire component into your `Dashboard.tsx` file
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import {
   Folder, FileText, Clock, Sun, Moon,
-  ChevronDown, LogOut, Plus
+  ChevronDown, LogOut, Plus, Edit2, Trash2, Layers, Hash, Star
 } from "lucide-react";
 import Link from "next/link";
 import { LayoutDashboard, User } from "lucide-react";
@@ -23,16 +25,13 @@ export default function Dashboard() {
   const [darkMode, setDarkMode] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showAll, setShowAll] = useState(false); // NEW
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const storedName = localStorage.getItem("ecliptica_username") || "User";
     setUsername(storedName);
-
     const storedProjects = localStorage.getItem("ecliptica_projects");
-    if (storedProjects) {
-      setProjects(JSON.parse(storedProjects));
-    }
+    if (storedProjects) setProjects(JSON.parse(storedProjects));
   }, []);
 
   const handleLogout = () => {
@@ -86,10 +85,45 @@ export default function Dashboard() {
     });
   };
 
+  const handleRename = (index: number) => {
+    const newName = prompt("Enter new project name:", projects[index].name);
+    if (newName) {
+      const updated = [...projects];
+      updated[index].name = newName;
+      setProjects(updated);
+      localStorage.setItem("ecliptica_projects", JSON.stringify(updated));
+    }
+  };
+
+  const handleDelete = (index: number) => {
+      if (confirm("Are you sure you want to delete this project?")) {
+        const updated = [...projects];
+        updated.splice(index, 1);
+        setProjects(updated);
+        localStorage.setItem("ecliptica_projects", JSON.stringify(updated));
+      }
+    };
+
+    function getMostCommonKeyword(projects: Project[]) {
+    const freq: Record<string, number> = {};
+
+    for (const project of projects) {
+      const nameParts = project.name.split("_").filter(word =>
+        word !== "data" && word.length > 1
+      );
+      nameParts.forEach(word => {
+        freq[word] = (freq[word] || 0) + 1;
+      });
+    }
+
+    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+    return sorted.length > 0 ? sorted[0][0] : "N/A";
+  }
+
+
   return (
     <>
       <div className={`min-h-screen font-sans flex transition-colors duration-500 ${darkMode ? "bg-[#0f172a] text-white" : "bg-white text-black"}`}>
-        {/* Sidebar */}
         <aside className="w-64 min-h-screen bg-[#007698] text-white p-6 space-y-6 fixed top-0 left-0">
           <Link href="/">
             <div className="flex items-center space-x-2 mb-6 cursor-pointer">
@@ -97,7 +131,6 @@ export default function Dashboard() {
               <span className="text-2xl font-semibold tracking-wide">Ecliptica</span>
             </div>
           </Link>
-
           <div className="text-sm font-semibold text-[#d4ecff] uppercase tracking-widest mb-2">Menu</div>
           <nav className="space-y-4">
             <Link href="/dashboard" className="flex items-center space-x-3 text-white hover:text-[#60a5fa] transition">
@@ -111,7 +144,6 @@ export default function Dashboard() {
           </nav>
         </aside>
 
-        {/* Main content */}
         <div className="ml-64 flex-1 px-10 py-10">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold tracking-wide">Welcome {username}!</h1>
@@ -119,42 +151,36 @@ export default function Dashboard() {
               <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full border hover:bg-gray-200 dark:hover:bg-gray-700 transition">
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-              <div className="relative">
-                <button
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  className={`flex items-center space-x-2 border px-3 py-1 rounded-full text-sm transition ${darkMode ? "text-white hover:bg-[#1e293b]" : "text-black hover:bg-gray-100"}`}
-                >
-                  <span>{username}</span>
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-md shadow-md z-10">
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" /> Log Out
-                    </button>
-                  </div>
-                )}
-              </div>
+              <button onClick={() => setShowDropdown(!showDropdown)} className="flex items-center space-x-2 border px-3 py-1 rounded-full text-sm transition">
+                <span>{username}</span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              {showDropdown && (
+                <div className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-gray-700 rounded-md shadow-md z-10">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center w-full px-4 py-2 text-sm text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" /> Log Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
+          {/* Stats Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-            <Card title="Total Projects" value={projects.length.toString()} darkMode={darkMode} />
-            <Card title="Most Common Keyword" value={projects.length > 0 ? getMostCommonKeyword(projects) : "N/A"} darkMode={darkMode} />
-            <Card title="Latest Project" value={projects.length > 0 ? projects[0].name : "N/A"} darkMode={darkMode} />
+            <Card icon={<Layers />} title="Total Projects" value={projects.length.toString()} darkMode={darkMode} />
+            <Card icon={<Hash />} title="Most Common Keyword" value={getMostCommonKeyword(projects)} darkMode={darkMode} />
+            <Card icon={<Clock />} title="Latest Project" value={projects[0]?.name || "N/A"} darkMode={darkMode} />
           </div>
 
-          <div className={`rounded-xl p-6 shadow transition-colors duration-300 ${darkMode ? "bg-[#1e293b] text-white" : "bg-gray-100 text-black"}`}>
+
+          {/* Project Cards */}
+          <div className={`rounded-xl p-6 shadow ${darkMode ? "bg-[#1e293b]" : "bg-gray-100"}`}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-semibold">Recent Projects</h2>
-              <button
-                onClick={handleCreateProject}
-                disabled={loading}
-                className="flex items-center space-x-2 bg-[#007698] text-white px-4 py-2 rounded-full hover:bg-blue-600 transition text-sm disabled:opacity-60"
-              >
+              <button onClick={handleCreateProject} disabled={loading} className="flex items-center space-x-2 bg-[#007698] text-white px-4 py-2 rounded-full hover:bg-blue-600 text-sm">
                 <Plus className="w-4 h-4" />
                 <span>{loading ? "Processing..." : "Create New Project"}</span>
               </button>
@@ -169,35 +195,28 @@ export default function Dashboard() {
 
             <ul className="space-y-4">
               {(showAll ? projects : projects.slice(0, 4)).map((project, index) => (
-                <li
-                  key={index}
-                  className={`flex items-center justify-between rounded-lg p-4 transition duration-300 ${darkMode ? "bg-[#334155]" : "bg-white border border-gray-200"}`}
-                >
+                <li key={index} className={`flex items-center justify-between rounded-lg p-4 ${darkMode ? "bg-[#334155]" : "bg-white border"}`}>
                   <div className="flex items-center space-x-4">
                     <Folder className="text-yellow-400" />
                     <div>
                       <h3 className="text-lg font-medium">{project.name}</h3>
                       <p className="text-sm text-gray-400">
-                        <FileText className="inline-block w-4 h-4 mr-1" /> {project.keywords} | <Clock className="inline-block w-4 h-4 mx-1" /> {project.createdAt}
+                        <FileText className="inline w-4 h-4 mr-1" /> {project.keywords} | <Clock className="inline w-4 h-4 mx-1" /> {project.createdAt}
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleDownloadNotice(project)}
-                    className="bg-[#007698] text-white px-4 py-2 rounded-full hover:bg-blue-600 text-sm transition"
-                  >
-                    Download
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    <button onClick={() => handleDownloadNotice(project)} className="bg-[#007698] text-white px-4 py-2 rounded-full text-sm hover:bg-blue-600">Download</button>
+                    <Edit2 onClick={() => handleRename(index)} className="cursor-pointer text-blue-400 hover:text-blue-600" />
+                    <Trash2 onClick={() => handleDelete(index)} className="cursor-pointer text-red-400 hover:text-red-600" />
+                  </div>
                 </li>
               ))}
             </ul>
 
             {projects.length > 4 && (
               <div className="text-center mt-4">
-                <button
-                  onClick={() => setShowAll(!showAll)}
-                  className="text-blue-600 hover:underline font-medium"
-                >
+                <button onClick={() => setShowAll(!showAll)} className="text-blue-600 hover:underline font-medium">
                   {showAll ? "View Less" : "View All Projects"}
                 </button>
               </div>
@@ -210,18 +229,12 @@ export default function Dashboard() {
   );
 }
 
-const Card = ({ title, value, darkMode }: { title: string, value: string, darkMode: boolean }) => (
-  <div className={`rounded-xl p-6 shadow transition-colors duration-300 ${darkMode ? "bg-[#1e293b] text-white" : "bg-gray-100 text-black"}`}>
-    <h2 className="text-lg font-medium mb-2">{title}</h2>
-    <p className="text-2xl font-bold">{value}</p>
+const Card = ({ icon, title, value, darkMode }: { icon: React.ReactNode, title: string, value: string, darkMode: boolean }) => (
+  <div className={`rounded-xl p-6 shadow flex items-center space-x-4 ${darkMode ? "bg-[#1e293b] text-white" : "bg-gray-100 text-black"}`}>
+    <div className="bg-blue-100 text-blue-600 p-3 rounded-full">{icon}</div>
+    <div>
+      <h2 className="text-sm font-semibold">{title}</h2>
+      <p className="text-2xl font-bold">{value}</p>
+    </div>
   </div>
 );
-
-function getMostCommonKeyword(projects: Project[]) {
-  const freq: Record<string, number> = {};
-  for (const project of projects) {
-    const keyword = project.keywords;
-    freq[keyword] = (freq[keyword] || 0) + 1;
-  }
-  return Object.entries(freq).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
-}
