@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import SignInModal from "./ui/signin"; // ✅ make sure this path matches
+import SignInModal from "./ui/signin";
 
 export default function Navbar() {
 	const [activeTab, setActiveTab] = useState<string>("home");
@@ -46,7 +46,6 @@ export default function Navbar() {
 				</div>
 			</nav>
 
-			{/* 🔽 Modal rendered conditionally */}
 			<SignInModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
 		</header>
 	);

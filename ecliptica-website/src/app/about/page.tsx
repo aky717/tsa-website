@@ -26,7 +26,7 @@ export default function About() {
         </div>
       </div>
 
-      {/* CTA section */}
+      {/* Call To Action section */}
       <div className="w-full bg-[#d4ecff] py-20 text-center">
         <h2 className="text-[#005eb4] text-5xl font-semibold mb-10">
           Discover Something New.

@@ -68,7 +68,7 @@ const SignInModal: React.FC<SignInModalProps> = ({ isOpen, onClose }) => {
           />
         </div>
 
-        {/* CTA Buttons */}
+        {/* Buttons */}
         <div className="mt-6 space-y-3">
           <button
             onClick={() => {

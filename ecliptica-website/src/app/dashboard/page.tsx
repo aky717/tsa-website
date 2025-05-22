@@ -1,5 +1,3 @@
-// Copy and paste this entire component into your `Dashboard.tsx` file
-
 "use client";
 
 import React, { useState, useEffect } from "react";
