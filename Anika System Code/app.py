@@ -20,7 +20,6 @@ from Visualization_Code.linechart import line_chart_overview
 from Visualization_Code.pie_chart import generate_pie_chart
 from Visualization_Code.sum_sunburst import create_sunburst_chart
 from Visualization_Code.keyword_network import generate_keyword_network
-from Visualization_Code.generate_geo_topic_map import generate_geo_topic_map
 
 print("✅ Flask app is loaded and waiting...")
 
@@ -46,7 +45,6 @@ def run_pipeline():
 
         base_filename = os.path.splitext(os.path.basename(filename))[0]
 
-        # ➕ Use keyword from saved file if available
         try:
             with open("last_keywords.txt", "r") as f:
                 keyword_base = f.read().strip()
@@ -103,7 +101,6 @@ def run_pipeline():
         generate_pie_chart(ctm_output_csv, output_folder)
         create_sunburst_chart(ctm_output_csv, output_folder)
         line_chart_overview(assigned_output_path, output_folder)
-        generate_geo_topic_map(ctm_output_csv, output_folder)
         generate_keyword_network(ctm_output_csv, output_folder)
         print("📊 Visualizations done")
         steps.update(1)
@@ -135,7 +132,7 @@ def run_pipeline():
         # Step 9: Zip it up
         shutil.make_archive(output_folder, 'zip', output_folder)
 
-        # ✅ Also copy to public outputs
+        # Also copy to public outputs
         public_outputs_dir = os.path.join(root_dir, "frontend", "public", "outputs")
         os.makedirs(public_outputs_dir, exist_ok=True)
         shutil.copy(zip_path, os.path.join(public_outputs_dir, os.path.basename(zip_path)))

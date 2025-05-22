@@ -1,11 +1,9 @@
-#!/usr/bin/env Rscript
-
 library(dplyr)
 library(readr)
 library(tm)
 library(topicmodels)
 library(NLP)
-library(textstem)  # ✅ Added for lemmatization
+library(textstem)
 
 # ---- Parse Args ----
 args <- commandArgs(trailingOnly = TRUE)
@@ -35,7 +33,7 @@ corp <- VCorpus(VectorSource(data$Abstract)) %>%
   tm_map(removePunctuation, ucp = TRUE) %>%
   tm_map(removeNumbers) %>%
   tm_map(removeWords, c(stopwords("english"), "food", "security", "insecurity")) %>%
-  tm_map(content_transformer(lemmatize_strings)) %>%  # ✅ Replaced stemDocument with lemmatizer
+  tm_map(content_transformer(lemmatize_strings)) %>% 
   tm_map(stripWhitespace)
 
 # ---- Tokenizer ----
